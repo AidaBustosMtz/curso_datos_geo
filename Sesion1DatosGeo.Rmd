@@ -1,0 +1,166 @@
+---
+title: "Sesión1 DatosGeo"
+author: "Aída Bustos"
+date: "27 de abril de 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Librerías
+
+```{r}
+library(sf)
+library(tidyverse)
+library(raster)
+library(spData)
+```
+#Cargar los mapas
+
+```{r}
+file <- "C:\\Users\\Aida\\Documents\\DatosGeoR\\curso_datos_geo\\MapMex\\gadm36_MEX_1.shp"
+
+mapa <- st_read(file, quiet=TRUE)
+
+class(mapa)
+glimpse(mapa)
+
+mapa %>% #cmd shift m
+  ggplot()+
+  geom_sf(aes(fill=NAME_1))+
+  guides(fill=FALSE) + #quita lista de nombres
+  geom_sf_label(aes(label=NAME_1), size=2) + #pone nombres de estados
+  coord_sf(datum = NA) +#quita coordenadas
+  theme(line = element_blank(), #theme quita todo, deja mapa en blanco
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank())
+
+```
+
+```{r}
+set.seed(110590)
+
+numeros <- tibble (NAME_1 = unique(mapa$NAME_1),
+        n = runif(32))
+```
+
+#Merge
+
+```{r}
+joined <- left_join(mapa, numeros)
+```
+```{r}
+joined %>% 
+  ggplot() +
+  geom_sf(aes(fill=n))
+```
+
+```{r}
+joined %>% 
+  filter(NAME_1 == "San Luis Potosí") %>% 
+  ggplot() +
+  geom_sf(aes(fill=n))
+
+##Iluminar un sólo estado en todo el mapa
+joined %>% 
+  filter(NAME_1 == "San Luis Potosí") %>% 
+  ggplot() +
+  geom_sf(data=joined, fill="pink") +
+  geom_sf(fill= "blue")
+
+```
+
+
+##Ahora dos mapas
+
+```{r}
+file2 <- "C:\\Users\\Aida\\Documents\\DatosGeoR\\curso_datos_geo\\MapMex\\gadm36_MEX_2.shp"
+
+mapa_mun <- st_read(file2, quiet=TRUE)
+
+```
+
+```{r}
+set.seed(110590)
+
+numeros_mun <- tibble(
+  GID_2 = mapa_mun$GID_2,
+  n2 = runif(1854)
+)
+
+```
+
+
+```{r}
+joined_mun <- left_join(mapa_mun, numeros_mun)
+```
+ 
+```{r}
+joined_mun %>% 
+  filter(NAME_1 == "Veracruz") %>% 
+  ggplot() +
+  geom_sf(aes(fill=n2), 
+          size=0.5, color="white") + 
+  geom_sf_label(data = joined %>% 
+                filter(NAME_1== "Veracruz"),
+                aes(label=NAME_1))+
+  coord_sf(datum = NA) +#quita coordenadas
+  theme(line = element_blank(), #theme quita todo, deja mapa en blanco
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank()) +
+  viridis::scale_fill_viridis(discrete = F)
+
+```
+ 
+
+```{r}
+joined_mun %>% 
+  ggplot() + 
+  geom_sf(aes(fill=n), color="white") + 
+ geom_sf(data=joined, color = "black", 
+         fill="transparent") +
+  coord_sf(datum = NA) +#quita coordenadas
+  theme(line = element_blank(), #theme quita todo, deja mapa en blanco
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank()) +
+  viridis::scale_fill_viridis(discrete = F) +
+  labs(title="Mapa de México", subtitle= "Datos simulados por municipio")
+  
+```
+
+```{r}
+mundo <- world
+
+cafe <- coffee_data
+
+```
+
+```{r}
+cafe_mundo <- left_join(mundo, cafe) %>% 
+
+```
+
+```{r}
+
+ggplot() +
+  geom_sf(data=cafe_mundo,
+          aes(fill=coffee_production_2017))+
+  viridis::scale_fill_viridis(na.value="white")
+
+
+
+ggplot() +
+  geom_sf(data=cafe_mundo,
+          aes(fill=coffee_production_2017))+
+  scale_fill_distiller(palette = "Spectral", 
+                       na.value="white")
+```
+
+
+
+
